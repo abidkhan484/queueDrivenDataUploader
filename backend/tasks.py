@@ -1,8 +1,14 @@
 from celery import Celery
+from dotenv import load_dotenv
+from os import getenv
+
+load_dotenv()
+
+broker_url = getenv('BROKER_URL')
 
 app = Celery(
     'file_writing_task',
-    broker='amqps://zzsfynmh:whMa8LaEmwo6-5ckfhAqrmqa47_jPNWc@armadillo.rmq.cloudamqp.com/zzsfynmh',
+    broker=broker_url,
     # backend='amqp'
 )
 
