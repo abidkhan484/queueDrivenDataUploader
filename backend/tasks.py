@@ -16,6 +16,6 @@ app = Celery(
 @app.task
 def write_chunk_file(file_unique_name: str, chunk_content: bytes):
     file_store_path = f"logs/{file_unique_name}"
-    with open(file_store_path, "wb") as f:
+    with open(file_store_path, 'w') as f:
         f.write(chunk_content)
-    
+

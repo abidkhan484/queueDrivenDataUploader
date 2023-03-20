@@ -46,6 +46,7 @@ def upload_file(file_unique_name: str = "", data: UploadFile = File(...), respon
 
 @app.post("/upload/complete", status_code=status.HTTP_200_OK)
 def upload_complete(request: Request, response: Response = None):
+    file_unique_name = request.body('file_unique_name')
     return {"isSuccess": True, "message": f"Successfully uploaded {file_unique_name} file"}
 
 if __name__ == "__main__":

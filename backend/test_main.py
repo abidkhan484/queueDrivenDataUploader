@@ -2,14 +2,15 @@ from fastapi.testclient import TestClient
 from dotenv import load_dotenv
 from main import app
 from os import getenv
+from os.path import getsize
+from math import ceil
 
 
 load_dotenv()
 
 client = TestClient(app)
 file_store_path = getenv("LOG_PATH")
-chunk_size = getenv("CHUNK_SIZE")
-chunk_size = 20
+chunk_size = int(getenv("CHUNK_SIZE"))
 
 def test_upload_chunk_file():
     with open("/home/polymath/Downloads/sequence.txt", "rb") as f:
@@ -23,6 +24,7 @@ def test_upload_chunk_file():
 
 def test_upload_full_file():
     filename = "/home/polymath/Downloads/epc_error.txt"
+    total_files = ceil(getsize(filename) / chunk_size)
     i = 0
     with open(filename, "rb") as in_file:
         chunk_file = in_file.read(chunk_size)
@@ -36,4 +38,5 @@ def test_upload_full_file():
             assert response_json['isSuccess'] == True
             chunk_file = in_file.read(chunk_size)
             i += 1
-
+    if i == total_files:
+         client.post(f"/upload/complete", json={'file_unique_name': filename})
