@@ -1,8 +1,9 @@
-from fastapi import FastAPI, UploadFile, File, Request, Response, status
+from fastapi import FastAPI, UploadFile, File, Request, Response, status, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 from os import getenv
 from dotenv import load_dotenv
+from models import UploadData
 
 
 load_dotenv()
@@ -37,19 +38,25 @@ def upload_file(file_unique_name: str = "", data: UploadFile = File(...), respon
             from tasks import write_chunk_file
             write_chunk_file.delay(file_unique_name, chunk_content)
     except Exception as e:
-        print(str(e))
         logging.debug(str(e))
-        response.status_code = status.HTTP_400_BAD_REQUEST
+        response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
         return {"message": "There was an error uploading the file"}
 
     return {"isSuccess": True, "message": f"Successfully uploaded {file_unique_name} file"}
 
-@app.post("/upload/complete", status_code=status.HTTP_200_OK)
-def upload_complete(request: Request, response: Response = None):
-    file_unique_name = request.body('file_unique_name')
-    return {"isSuccess": True, "message": f"Successfully uploaded {file_unique_name} file"}
+@app.post("/upload/complete", status_code=status.HTTP_201_CREATED)
+def upload_complete(data: UploadData, response: Response = None):
+    try:
+        file_unique_name = data.file_unique_name
+        # write the code to merge the files and delete the chunk files
+        return {"isSuccess": True, "message": f"Successfully uploaded {file_unique_name} file"}
+    except Exception as e:
+        print(str(e))
+        logging.debug(str(e))
+        response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+        return {"message": "There was an error uploading the file"}
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000,
+    uvicorn.run("main:app", host="0.0.0.0", port=getenv("SERVER_PORT"),
                 log_level="info", reload=True)
