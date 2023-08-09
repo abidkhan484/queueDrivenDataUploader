@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { ProgressBar, Form } from "react-bootstrap";
 
-const chunkSize = 20;
+const chunkSize = process.env.REACT_APP_CHUNK_SIZE;
 
 function App() {
   const [counter, setCounter] = useState(0);
@@ -28,14 +28,12 @@ function App() {
     const totalCount = Math.ceil(file.size / chunkSize);
     setChunkCount(totalCount);
     setFileToBeUpload(file);
-    const uniqueName =
-      Math.random().toString(36).slice(-6) + file.name.split(".").pop();
+    const uniqueName = `${Math.random().toString(36).slice(-6)}-${file.name}`;
     setFileUniqueName(uniqueName);
   };
 
   const fileUpload = () => {
     setCounter(counter + 1);
-    console.log(`${counter} and ${chunkCount} and ${fileSize}`);
     if (counter < chunkCount) {
       let chunk = fileToBeUpload.slice(chunkInitialByte, chunkFinishByte);
       uploadChunk(chunk);
@@ -44,21 +42,18 @@ function App() {
 
   const uploadChunk = async (chunk) => {
     try {
-      var formData = new FormData();
-      console.log(chunk.type);
-
+      let formData = new FormData();
 
       formData.append(
-        "file",
+        "data",
         chunk,
       );
 
       const response = await fetch(
-        `http://localhost:8000/upload/${fileUniqueName}`,
+        `http://localhost:8000/upload/${fileUniqueName}-${counter-1}`,
         {
           method: "POST",
           headers: {
-            "content-type": "application/octet-stream",
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "*",
           },
@@ -70,9 +65,13 @@ function App() {
       // add is success condition
       setChunkInitialByte(chunkFinishByte);
       setChunkFinishByte(chunkFinishByte + chunkSize);
-      if (counter === chunkCount) {
+
+      console.log(`${counter} and ${chunkCount} and ${fileSize}`);
+      // make it more dev friendly
+      if (counter+1 === chunkCount) {
         console.log("Upload complete");
         await uploadCompleted();
+        setProgress(100);
       } else {
         let percentage = (counter / chunkCount) * 100;
         setProgress(percentage);
@@ -83,15 +82,17 @@ function App() {
   };
 
   const uploadCompleted = async () => {
-    const response = await fetch("/upload/complete", {
+    console.log(fileUniqueName);
+    const response = await fetch("http://localhost:8000/upload/complete/", {
       method: "POST",
       headers: {
         "content-type": "application/json",
       },
-      body: {
-        filename: fileUniqueName,
-      },
+      body: JSON.stringify({
+        file_unique_name: fileUniqueName,
+      }),
     });
+    // show upload complete flash message according to the response
   };
 
   return (
