@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { ProgressBar, Form } from "react-bootstrap";
 
 const chunkSize = process.env.REACT_APP_CHUNK_SIZE;
+const apiEndoint = process.env.REACT_APP_API_ENDPOINT;
+const apiPort = process.env.REACT_APP_API_PORT;
 
 function App() {
   const [counter, setCounter] = useState(0);
@@ -50,7 +52,7 @@ function App() {
       );
 
       const response = await fetch(
-        `http://localhost:8000/upload/${fileUniqueName}-${counter-1}`,
+        `${apiEndoint}:${apiPort}/upload/${fileUniqueName}-${counter-1}`,
         {
           method: "POST",
           headers: {
@@ -83,7 +85,7 @@ function App() {
 
   const uploadCompleted = async () => {
     console.log(fileUniqueName);
-    const response = await fetch("http://localhost:8000/upload/complete/", {
+    const response = await fetch(`${apiEndoint}:${apiPort}/upload/complete/`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
