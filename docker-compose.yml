@@ -1,0 +1,59 @@
+version: '3.8'
+services:
+  appserver:
+    image: appserver
+    container_name: appserver
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - 8000:80
+    networks:
+      - mydockernet
+    environment:
+      - DEBUG=1
+      - PORT=8002
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+  celery:
+    image: celery
+    container_name: celery
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    networks:
+      - mydockernet
+    # volumes:
+    #   - .:/app
+    # env_file:
+    # - .env
+    command: ["celery", "-A", "tasks.app", "worker", "--loglevel=INFO"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+
+  appclient:
+    image: appclient
+    container_name: appclient
+    build:
+      context: ./frontend
+      # args:
+      #   REACT_APP_API_URL: http://{API_SERVER_IP}:8002
+      #   REACT_APP_ENV: production
+      dockerfile: Dockerfile
+    networks:
+      - mydockernet
+    environment:
+      - REACT_APP_ENV=production
+    ports:
+      - 3000:80
+    depends_on:
+      - appserver
+
+networks:
+  mydockernet:
+    driver: bridge
+
