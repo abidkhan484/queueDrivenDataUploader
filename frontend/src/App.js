@@ -1,5 +1,10 @@
 import { useState, useEffect } from "react";
 import { ProgressBar, Form } from "react-bootstrap";
+import Button from "react-bootstrap/Button";
+import Container from "react-bootstrap/Container";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
+import "bootstrap/dist/css/bootstrap.css";
 
 const chunkSize = process.env.REACT_APP_CHUNK_SIZE;
 const apiEndoint = process.env.REACT_APP_API_ENDPOINT;
@@ -9,6 +14,7 @@ function App() {
   const [counter, setCounter] = useState(0);
   const [chunkCount, setChunkCount] = useState(0);
   const [fileToBeUpload, setFileToBeUpload] = useState({});
+  const [fileObj, setFileObj] = useState({});
   const [fileUniqueName, setFileUniqueName] = useState("");
   const [fileSize, setFileSize] = useState(0);
   const [chunkInitialByte, setChunkInitialByte] = useState(0);
@@ -21,6 +27,10 @@ function App() {
     }
   }, [fileToBeUpload, progress]);
 
+  const uploadFileObj = () => {
+    setFileToBeUpload(fileObj);
+  };
+
   const getFileContext = (event) => {
     const file = event.target.files[0];
     console.log(file.type);
@@ -29,7 +39,7 @@ function App() {
 
     const totalCount = Math.ceil(file.size / chunkSize);
     setChunkCount(totalCount);
-    setFileToBeUpload(file);
+    setFileObj(file);
     const uniqueName = `${Math.random().toString(36).slice(-6)}-${file.name}`;
     setFileUniqueName(uniqueName);
   };
@@ -46,13 +56,10 @@ function App() {
     try {
       let formData = new FormData();
 
-      formData.append(
-        "data",
-        chunk,
-      );
+      formData.append("data", chunk);
 
       const response = await fetch(
-        `${apiEndoint}:${apiPort}/upload/${fileUniqueName}-${counter-1}`,
+        `${apiEndoint}:${apiPort}/upload/${fileUniqueName}-${counter - 1}`,
         {
           method: "POST",
           headers: {
@@ -70,7 +77,7 @@ function App() {
 
       console.log(`${counter} and ${chunkCount} and ${fileSize}`);
       // make it more dev friendly
-      if (counter+1 === chunkCount) {
+      if (counter + 1 === chunkCount) {
         console.log("Upload complete");
         await uploadCompleted();
         setProgress(100);
@@ -98,10 +105,19 @@ function App() {
   };
 
   return (
-    <Form.Group controlId="formFile" className="mb-3">
-      <Form.Label>Upload Large File</Form.Label>
-      <Form.Control type="file" onChange={getFileContext} />
-    </Form.Group>
+    <div className="my-4">
+      <Container>
+        <div className="center">
+          <Form.Group controlId="formFile" className="mb-3">
+            <Form.Label>Upload Large File</Form.Label>
+            <Form.Control type="file" onChange={getFileContext} />
+            <Button variant="primary" onClick={uploadFileObj} className="mt-3">
+              Upload
+            </Button>
+          </Form.Group>
+        </div>
+      </Container>
+    </div>
   );
 }
 
