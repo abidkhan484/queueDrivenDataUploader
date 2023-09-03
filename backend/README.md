@@ -39,5 +39,5 @@ pytest -s
 
 
 ## Tech Stack
-- React
-- Bootstrap
+- FastAPI
+- Celery
